@@ -6,6 +6,7 @@ RUN apt-get update && apt-get install -y wget && rm -rf /var/lib/apt/lists/*
 
 RUN pip install -U "huggingface_hub[hf_transfer]"
 RUN pip install runpod websocket-client librosa
+RUN pip install insightface onnxruntime-gpu
 
 WORKDIR /
 
@@ -62,7 +63,14 @@ RUN wget -q https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/
 RUN wget -q https://huggingface.co/Kijai/MelBandRoFormer_comfy/resolve/main/MelBandRoformer_fp16.safetensors -O /ComfyUI/models/diffusion_models/MelBandRoformer_fp16.safetensors
 
 
+# Download InsightFace buffalo_sc model (~30MB) for face detection in multi-mode
+RUN python -c "from insightface.app import FaceAnalysis; app = FaceAnalysis(name='buffalo_sc', providers=['CPUExecutionProvider']); app.prepare(ctx_id=0)"
+
 COPY . .
+
+# Copy custom face detection node into ComfyUI custom_nodes
+RUN cp -r /comfyui_face_mask /ComfyUI/custom_nodes/comfyui_face_mask
+
 RUN chmod +x /entrypoint.sh
 
 CMD ["/entrypoint.sh"]

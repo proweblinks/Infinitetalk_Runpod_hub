@@ -247,11 +247,28 @@
       "audio_2": [
         "306",
         0
+      ],
+      "ref_target_masks": [
+        "310",
+        0
       ]
     },
     "class_type": "MultiTalkWav2VecEmbeds",
     "_meta": {
       "title": "Multi/InfiniteTalk Wav2vec2 Embeds"
+    }
+  },
+  "310": {
+    "inputs": {
+      "image": [
+        "281",
+        0
+      ],
+      "expand_ratio": 1.5
+    },
+    "class_type": "FaceDetectMask",
+    "_meta": {
+      "title": "Face Detect Mask"
     }
   },
   "237": {
