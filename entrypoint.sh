@@ -3,8 +3,8 @@
 # Exit immediately if a command exits with a non-zero status.
 set -e
 
-# Download model weights if not already present
-echo "Checking model weights..."
+# Verify model weights (should already be baked into image; fallback download if missing)
+echo "Verifying model weights..."
 /download_models.sh
 
 # Start ComfyUI in the background
