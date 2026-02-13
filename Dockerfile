@@ -90,8 +90,12 @@ RUN wget -q "https://huggingface.co/Kijai/WanVideo_comfy/resolve/main/umt5-xxl-e
 RUN wget -q "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/clip_vision/clip_vision_h.safetensors" \
     -O /ComfyUI/models/clip_vision/clip_vision_h.safetensors
 
-# Wav2Vec2 model: TencentGameMate/chinese-wav2vec2-base (~380MB)
-# Used by InfiniteTalk for audio feature extraction - must be pre-downloaded to avoid runtime HF downloads
+# Wav2Vec2 safetensors model (~190MB) - used by Wav2VecModelLoader node in all workflows
+RUN wget -q "https://huggingface.co/Kijai/wav2vec2_safetensors/resolve/main/wav2vec2-chinese-base_fp16.safetensors" \
+    -O /ComfyUI/models/diffusion_models/wav2vec2-chinese-base_fp16.safetensors
+
+# Wav2Vec2 HuggingFace model: TencentGameMate/chinese-wav2vec2-base (~380MB)
+# Used by DownloadAndLoadWav2VecModel node - must be pre-downloaded to avoid runtime HF downloads
 RUN mkdir -p /ComfyUI/models/transformers/TencentGameMate/chinese-wav2vec2-base && \
     python -c "from huggingface_hub import snapshot_download; snapshot_download('TencentGameMate/chinese-wav2vec2-base', local_dir='/ComfyUI/models/transformers/TencentGameMate/chinese-wav2vec2-base')"
 

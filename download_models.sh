@@ -56,7 +56,12 @@ download_if_missing \
     "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/clip_vision/clip_vision_h.safetensors" \
     "/ComfyUI/models/clip_vision/clip_vision_h.safetensors"
 
-# Wav2Vec2 model for InfiniteTalk audio feature extraction
+# Wav2Vec2 safetensors model (used by Wav2VecModelLoader node)
+download_if_missing \
+    "https://huggingface.co/Kijai/wav2vec2_safetensors/resolve/main/wav2vec2-chinese-base_fp16.safetensors" \
+    "/ComfyUI/models/diffusion_models/wav2vec2-chinese-base_fp16.safetensors"
+
+# Wav2Vec2 HuggingFace model for InfiniteTalk audio feature extraction
 WAV2VEC_DIR="/ComfyUI/models/transformers/TencentGameMate/chinese-wav2vec2-base"
 if [ ! -f "$WAV2VEC_DIR/pytorch_model.bin" ]; then
     echo "Downloading TencentGameMate/chinese-wav2vec2-base..."
