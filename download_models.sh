@@ -56,4 +56,15 @@ download_if_missing \
     "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/clip_vision/clip_vision_h.safetensors" \
     "/ComfyUI/models/clip_vision/clip_vision_h.safetensors"
 
+# Wav2Vec2 model for InfiniteTalk audio feature extraction
+WAV2VEC_DIR="/ComfyUI/models/transformers/TencentGameMate/chinese-wav2vec2-base"
+if [ ! -f "$WAV2VEC_DIR/pytorch_model.bin" ]; then
+    echo "Downloading TencentGameMate/chinese-wav2vec2-base..."
+    mkdir -p "$WAV2VEC_DIR"
+    python -c "from huggingface_hub import snapshot_download; snapshot_download('TencentGameMate/chinese-wav2vec2-base', local_dir='$WAV2VEC_DIR')"
+    echo "Done: chinese-wav2vec2-base"
+else
+    echo "Already exists: chinese-wav2vec2-base"
+fi
+
 echo "=== All models ready ==="

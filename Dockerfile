@@ -90,6 +90,11 @@ RUN wget -q "https://huggingface.co/Kijai/WanVideo_comfy/resolve/main/umt5-xxl-e
 RUN wget -q "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/clip_vision/clip_vision_h.safetensors" \
     -O /ComfyUI/models/clip_vision/clip_vision_h.safetensors
 
+# Wav2Vec2 model: TencentGameMate/chinese-wav2vec2-base (~380MB)
+# Used by InfiniteTalk for audio feature extraction - must be pre-downloaded to avoid runtime HF downloads
+RUN mkdir -p /ComfyUI/models/transformers/TencentGameMate/chinese-wav2vec2-base && \
+    python -c "from huggingface_hub import snapshot_download; snapshot_download('TencentGameMate/chinese-wav2vec2-base', local_dir='/ComfyUI/models/transformers/TencentGameMate/chinese-wav2vec2-base')"
+
 # Download InsightFace buffalo_sc model (~30MB) for face detection in multi-mode
 RUN python -c "from insightface.app import FaceAnalysis; app = FaceAnalysis(name='buffalo_sc', providers=['CPUExecutionProvider']); app.prepare(ctx_id=0)"
 
@@ -98,6 +103,8 @@ COPY . .
 # Copy custom face detection node into ComfyUI custom_nodes
 RUN cp -r /comfyui_face_mask /ComfyUI/custom_nodes/comfyui_face_mask
 
-RUN chmod +x /entrypoint.sh /download_models.sh
+# Fix Windows CRLF line endings (if any) and set executable permissions
+RUN sed -i 's/\r$//' /entrypoint.sh /download_models.sh && \
+    chmod +x /entrypoint.sh /download_models.sh
 
 CMD ["/entrypoint.sh"]
