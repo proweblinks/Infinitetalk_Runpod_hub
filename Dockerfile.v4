@@ -1,0 +1,4 @@
+FROM newpixel/infinitetalk-multitalk:v3.0
+# v4.0: Add quality parameter support (steps, cfg, shift, scheduler, seed,
+#        negative_prompt, audio_cfg_scale, audio_scale, motion_frame)
+COPY handler.py /handler.py

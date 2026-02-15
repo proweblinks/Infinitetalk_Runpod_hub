@@ -11,6 +11,7 @@ import binascii  # Base64 에러 처리를 위해 import
 import subprocess
 import librosa
 import shutil
+import random
 
 # 로깅 설정
 logging.basicConfig(level=logging.INFO)
@@ -433,6 +434,67 @@ def handler(job):
         logger.info(f"✅ 노드 {sampler_node_id} (WanVideoSampler) 업데이트됨: force_offload={force_offload}")
     else:
         logger.warning("⚠️ 경고: WanVideoSampler 노드를 찾을 수 없습니다. 워크플로우 기본값을 사용합니다.")
+    # ------------------------------------------------------------------
+
+    # ------------------------------------------------------------------
+    # Quality Parameters Injection
+    # ------------------------------------------------------------------
+
+    # 2a. WanVideoSampler (node 128) — steps, cfg, shift, scheduler, seed
+    if sampler_node_id:
+        sampler_inputs = prompt[sampler_node_id].setdefault("inputs", {})
+
+        if "steps" in job_input:
+            sampler_inputs["steps"] = int(job_input["steps"])
+            logger.info(f"✅ steps={sampler_inputs['steps']}")
+
+        if "cfg" in job_input:
+            sampler_inputs["cfg"] = float(job_input["cfg"])
+            logger.info(f"✅ cfg={sampler_inputs['cfg']}")
+
+        if "shift" in job_input:
+            sampler_inputs["shift"] = float(job_input["shift"])
+            logger.info(f"✅ shift={sampler_inputs['shift']}")
+
+        if "scheduler" in job_input:
+            sampler_inputs["scheduler"] = str(job_input["scheduler"])
+            logger.info(f"✅ scheduler={sampler_inputs['scheduler']}")
+
+        if "seed" in job_input:
+            seed_val = int(job_input["seed"])
+            if seed_val <= 0:
+                seed_val = random.randint(0, 2**32 - 1)
+            sampler_inputs["seed"] = seed_val
+            logger.info(f"✅ seed={seed_val}")
+
+    # 2b. WanVideoTextEncode (node 241) — negative_prompt
+    text_encode_id = "241"
+    if text_encode_id in prompt:
+        if "negative_prompt" in job_input:
+            prompt[text_encode_id]["inputs"]["negative_prompt"] = str(job_input["negative_prompt"])
+            logger.info(f"✅ negative_prompt set ({len(job_input['negative_prompt'])} chars)")
+
+    # 2c. MultiTalkWav2VecEmbeds (node 194) — audio_cfg_scale, audio_scale
+    wav2vec_id = "194"
+    if wav2vec_id in prompt:
+        wav2vec_inputs = prompt[wav2vec_id].setdefault("inputs", {})
+
+        if "audio_cfg_scale" in job_input:
+            wav2vec_inputs["audio_cfg_scale"] = float(job_input["audio_cfg_scale"])
+            logger.info(f"✅ audio_cfg_scale={wav2vec_inputs['audio_cfg_scale']}")
+
+        if "audio_scale" in job_input:
+            wav2vec_inputs["audio_scale"] = float(job_input["audio_scale"])
+            logger.info(f"✅ audio_scale={wav2vec_inputs['audio_scale']}")
+
+    # 2d. WanVideoImageToVideoMultiTalk (node 192) — motion_frame
+    i2v_multi_id = "192"
+    if i2v_multi_id in prompt and input_type == "image":
+        if "motion_frame" in job_input:
+            prompt[i2v_multi_id]["inputs"]["motion_frame"] = int(job_input["motion_frame"])
+            logger.info(f"✅ motion_frame={job_input['motion_frame']}")
+
+    logger.info("✅ Quality parameter injection complete")
     # ------------------------------------------------------------------
 
     # 파일 존재 여부 확인
