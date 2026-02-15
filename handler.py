@@ -435,6 +435,44 @@ def handler(job):
         logger.warning("⚠️ 경고: WanVideoSampler 노드를 찾을 수 없습니다. 워크플로우 기본값을 사용합니다.")
     # ------------------------------------------------------------------
 
+    # ------------------------------------------------------------------
+    # Quality parameters: steps, cfg, shift, audio_cfg_scale, negative_prompt
+    # These override workflow JSON defaults when provided in the API input.
+    # ------------------------------------------------------------------
+    if sampler_node_id:
+        inputs = prompt[sampler_node_id]["inputs"]
+        if "steps" in job_input:
+            inputs["steps"] = int(job_input["steps"])
+            logger.info(f"🔧 Sampler steps: {inputs['steps']}")
+        if "cfg" in job_input:
+            inputs["cfg"] = float(job_input["cfg"])
+            logger.info(f"🔧 Sampler cfg: {inputs['cfg']}")
+        if "shift" in job_input:
+            inputs["shift"] = float(job_input["shift"])
+            logger.info(f"🔧 Sampler shift: {inputs['shift']}")
+
+    # Audio guidance scale — controls lip-sync accuracy (node 194: MultiTalkWav2VecEmbeds)
+    if "audio_cfg_scale" in job_input:
+        audio_node_id = None
+        if "194" in prompt and prompt["194"].get("class_type") in ("MultiTalkWav2VecEmbeds", "MultiTalkWav2VecEmbedsMulti"):
+            audio_node_id = "194"
+        else:
+            for nid, ndata in prompt.items():
+                if ndata.get("class_type") in ("MultiTalkWav2VecEmbeds", "MultiTalkWav2VecEmbedsMulti"):
+                    audio_node_id = nid
+                    break
+        if audio_node_id:
+            prompt[audio_node_id]["inputs"]["audio_cfg_scale"] = int(job_input["audio_cfg_scale"])
+            logger.info(f"🔧 Audio cfg_scale: {job_input['audio_cfg_scale']} (node {audio_node_id})")
+        else:
+            logger.warning("⚠️ MultiTalkWav2VecEmbeds node not found — audio_cfg_scale not applied")
+
+    # Negative prompt override (node 241: WanVideoTextEncode)
+    if "negative_prompt" in job_input:
+        prompt["241"]["inputs"]["negative_prompt"] = job_input["negative_prompt"]
+        logger.info(f"🔧 Negative prompt updated")
+    # ------------------------------------------------------------------
+
     # 파일 존재 여부 확인
     if not os.path.exists(media_path):
         logger.error(f"미디어 파일이 존재하지 않습니다: {media_path}")
